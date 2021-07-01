@@ -1,0 +1,142 @@
+#!/usr/bin/env bash
+# pull <options> <user@host> <source> <file/directory>
+#
+# example: bash pull -e "./.ignore" user@127.0.0.1 ~/Workspace /www
+# example: bash pull -WS -i "file-1.txt","file-2.txt" user@127.0.0.1 / /
+
+if [ "$1" == "-h" ];
+then
+    echo "
+ pull <options> <user@host> <source> <file/directory>
+
+ <options>
+    -i              exclude list: \"file-1.txt\",\"file-2.txt\"
+    -e              exclude file: \"./.ignore\" (default: ./.ignore)
+    -W              upload directory starts with: /Workspace
+    -S              source directory starts with: /www
+
+ <user@host>
+    example         SSH user name and IPv4 address: user_name@127.0.0.1
+
+ <source>
+    source     host source directory: /path/to/directory
+
+ <file/directory>
+    file            file path: /path/to/file.ext
+    directory       directory path: /path/to/directory
+    "
+    exit 1
+fi
+
+user_host=${@: -3:1}
+source=${@: -2:1}
+file_directory=${@: -1}
+
+exclude_file=( --exclude-from="./.ignore" )
+exclude_list=""
+
+if [[ ! $source =~ ^\/ ]];
+then
+    echo "The host source directory should start with -> / <- ($source)."
+    exit 1
+fi
+
+while getopts "e:i:WS" opt;
+   do
+     case $opt in
+        e )
+            [[ -f $OPTARG ]] && exclude_file=( --exclude-from=$OPTARG )
+            ;;
+        i )
+            arr=()
+            IFS="," read -ra OPTS <<< "$OPTARG"
+            for i in "${OPTS[@]}"; do
+                arr+=( --exclude="$i" )
+            done
+            exclude_list=( ${arr[@]} );;
+        W )
+            file_directory="$HOME/Workspace$file_directory";;
+        S )
+            source="/www$source";;
+        * )
+            break;;
+     esac
+done
+
+if [[ $user_host =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]];
+then
+    echo "$user_host is valid."
+else
+    if [[ ! $user_host =~ \@ ]]
+    then
+        echo "$user_host is not valid! @ character is missing!"
+        exit 1
+    fi
+
+    if [[ $user_host =~ ^[a-zA-Z\_\.\-]+\@[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]];
+    then
+        echo "$user_host is valid."
+    else
+        echo "$user_host is not valid! Allowed characters for user names [a-zA-Z\_\.\-]+. If something is missing, add your special character to the list."
+        exit 1
+    fi
+fi
+
+if [[ -d $file_directory ]]; 
+then
+    echo "$file_directory is valid."
+elif [[ -f $file_directory ]];
+then
+    echo "$file_directory is valid."
+else
+    echo "$file_directory is not valid! Seems that $file_directory does not exists."
+    exit 1
+fi
+
+[[ ${exclude_list[@]} == "null" ]] && exclude=${exclude_file[@]} || exclude=${exclude_list[@]}
+
+if [[ ! $file_directory =~ \/$ ]];
+then
+    while true; do
+    read -p "Are you sure to synchronize $(tput bold)$(tput setaf 1)$file_directory$(tput sgr0) with $(tput bold)$(tput setaf 1)$source$(tput sgr0) (yes/no)? " answer
+        case "$answer" in
+            yes )
+                exec rsync -vr ${exclude[@]} --delete $user_host:$source $file_directory
+                break;;
+            no )
+                echo "Ok, maybe later."
+                break;;
+            *)
+                echo "Please, try again (yes/no).";;
+        esac
+    done
+elif [[ $file_directory =~ \/$ ]];
+then
+    while true; do
+    read -p "Are you sure to synchronize $(tput bold)$(tput setaf 1)all files $files_directory$(tput sgr0) with $(tput bold)$(tput setaf 1)the directory $source$(tput sgr0) (yes/no)? " answer
+        case "$answer" in
+            yes )
+                exec rsync -vr ${exclude[@]} --delete $user_host:$source $file_directory
+                break;;
+            no )
+                echo "Ok, maybe later."
+                break;;
+            *)
+                echo "Please, try again (yes/no).";;
+        esac
+    done
+else
+    while true; do
+    read -p "Are you sure to synchronize $(tput bold)$(tput setaf 1)the file $files_directory$(tput sgr0) with $(tput bold)$(tput setaf 1)the directory $source$(tput sgr0) (yes/no)? " answer
+        case "$answer" in
+            yes )
+                exec rsync -vr ${exclude[@]} --delete $user_host:$source $file_directory
+                break;;
+            no )
+                echo "Ok, maybe later."
+                break;;
+            *)
+                echo "Please, try again (yes/no).";;
+        esac
+    done
+fi

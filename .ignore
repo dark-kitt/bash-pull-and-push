@@ -1,0 +1,35 @@
+# SYSTEM FILES
+.DS_Store
+
+# GIT
+.git/
+.gitignore
+.gitkeep
+
+# WordPress
+*/web/wp/wp-content/plugins/*
+*/web/wp/wp-content/themes/*
+
+# CUSTOM
+*/wp-vue-base-theme/
+README.md
+license.txt
+
+# COMPOSER
+composer.json
+composer.lock
+
+# NODE
+node_modules/
+package-lock.json
+package.json
+
+# PROJECT
+*/web/app/themes/*/font/
+# */web/app/themes/*/img/
+*/web/app/themes/*/js/
+*/web/app/themes/*/scss/
+*/web/app/themes/*/template/
+*/web/app/themes/*/project-config.js
+*/web/app/themes/*/.env
+
