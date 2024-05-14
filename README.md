@@ -77,4 +77,4 @@ Get help via `bash pull -h` or `bash push -h`.
 
 ## License
 
-[![](https://upload.wikimedia.org/wikipedia/commons/d/d0/CC-BY-SA_icon.svg)](https://creativecommons.org/licenses/by-sa/2.0/)
+[![](https://upload.wikimedia.org/wikipedia/commons/e/e5/CC_BY-SA_icon.svg)](https://creativecommons.org/licenses/by-sa/4.0)
